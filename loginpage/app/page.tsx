@@ -8,7 +8,7 @@ import { Eye, EyeOff, Sun, Moon, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
+import { ProgressBar } from "@/components/ui/progress-bar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "@/context/ThemeContext";
-
+import { Spinner } from "@/components/ui/spinner";
 
 type Theme = "light" | "dark" | "system";
 
@@ -29,6 +29,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
   const searchParams = useSearchParams();
 
   const { theme, setTheme, resolvedTheme, isThemeLoaded } = useTheme();
@@ -59,18 +60,27 @@ export default function LoginPage() {
 
   // Function to navigate to signup with theme parameter
   const navigateToSignup = () => {
+    setIsNavigating(true);
     const themeParam = `theme=${theme}`;
-    window.location.href = `http://localhost:3001?${themeParam}`;
+    setTimeout(() => {
+      window.location.href = `http://localhost:3001?${themeParam}`;
+    }, 500);
   };
 
-  // Loading spinner
-  if (!isThemeLoaded) {
+  // Function to navigate to forgot password with theme parameter
+  const navigateToForgotPassword = () => {
+    setIsNavigating(true);
+    const themeParam = `theme=${theme}`;
+    setTimeout(() => {
+      window.location.href = `http://localhost:3002?${themeParam}`;
+    }, 500);
+  };
+
+  // Loading spinner for theme
+  if (!isThemeLoaded || isNavigating) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="flex flex-col items-center gap-4">
-          <Spinner className="h-8 w-8 text-blue-600" />
-          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
-        </div>
+        <ProgressBar isLoading={true} />
       </div>
     );
   }
@@ -125,58 +135,57 @@ export default function LoginPage() {
     return isDark ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />;
   };
 
-  const inputClasses = `h-12 rounded-full px-6 transition-all duration-200 focus:ring-2 focus:ring-blue-500/20 ${
-    isDark
-      ? "bg-gray-800 border-gray-600 text-white placeholder-gray-500 focus:border-blue-500"
-      : "bg-white border-gray-400 text-gray-900 placeholder-gray-400 focus:border-blue-500"
-  }`;
+  const inputClasses = `h-12 rounded-full px-6 transition-all duration-200 focus:ring-2 focus:ring-blue-500/20 ${isDark
+    ? "bg-gray-800 border-gray-600 text-white placeholder-gray-500 focus:border-blue-500"
+    : "bg-white border-gray-400 text-gray-900 placeholder-gray-400 focus:border-blue-500"
+    }`;
 
-  const dropdownContentClasses = `w-40 ${
-    isDark 
-      ? "bg-gray-800 border-gray-700 text-white" 
-      : "bg-white border-gray-200 text-gray-900"
-  }`;
+  const dropdownContentClasses = `w-40 ${isDark
+    ? "bg-gray-800 border-gray-700 text-white"
+    : "bg-white border-gray-200 text-gray-900"
+    }`;
 
-  const dropdownItemClasses = `flex items-center justify-between cursor-pointer ${
-    isDark ? "hover:bg-gray-700" : "hover:bg-gray-100"
-  }`;
+  const dropdownItemClasses = `flex items-center justify-between cursor-pointer ${isDark ? "hover:bg-gray-700" : "hover:bg-gray-100"
+    }`;
 
   return (
     <div className={`min-h-screen flex ${isDark ? "dark bg-gray-900" : "bg-white"}`}>
+      {/* Global Progress Bar - Only for page navigation */}
+      <ProgressBar isLoading={isNavigating} />
+
       {/* Theme Dropdown */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
             size="icon"
-            className={`absolute top-6 right-6 z-10 rounded-full shadow-md hover:shadow-lg transition-all duration-200 ${
-              isDark 
-                ? "bg-gray-800 border-gray-700 text-white" 
-                : "bg-white border-gray-300 text-gray-900"
-            }`}
+            className={`absolute top-6 right-6 z-10 rounded-full shadow-md hover:shadow-lg transition-all duration-200 ${isDark
+              ? "bg-gray-800 border-gray-700 text-white"
+              : "bg-white border-gray-300 text-gray-900"
+              }`}
             aria-label="Theme settings"
           >
             {getThemeIcon()}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className={dropdownContentClasses}>
-          <DropdownMenuItem 
+          <DropdownMenuItem
             onClick={() => setTheme("light")}
             className={dropdownItemClasses}
           >
             <span>Light</span>
             {theme === "light" && <Check className="h-4 w-4" />}
           </DropdownMenuItem>
-          
-          <DropdownMenuItem 
+
+          <DropdownMenuItem
             onClick={() => setTheme("dark")}
             className={dropdownItemClasses}
           >
             <span>Dark</span>
             {theme === "dark" && <Check className="h-4 w-4" />}
           </DropdownMenuItem>
-          
-          <DropdownMenuItem 
+
+          <DropdownMenuItem
             onClick={() => setTheme("system")}
             className={dropdownItemClasses}
           >
@@ -214,11 +223,10 @@ export default function LoginPage() {
 
             {/* Root Error Message */}
             {errors.root && (
-              <div className={`p-3 rounded-lg text-sm ${
-                isDark 
-                  ? "bg-red-900/20 text-red-200 border border-red-800" 
-                  : "bg-red-50 text-red-700 border border-red-200"
-              }`}>
+              <div className={`p-3 rounded-lg text-sm ${isDark
+                ? "bg-red-900/20 text-red-200 border border-red-800"
+                : "bg-red-50 text-red-700 border border-red-200"
+                }`}>
                 {errors.root.message}
               </div>
             )}
@@ -257,6 +265,7 @@ export default function LoginPage() {
                 </Label>
                 <Button
                   variant="link"
+                  onClick={navigateToForgotPassword}
                   className="text-blue-500 hover:underline p-0 h-auto text-sm"
                   type="button"
                 >
@@ -284,9 +293,8 @@ export default function LoginPage() {
                   size="icon"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                   onClick={() => setShowPassword((s) => !s)}
-                  className={`absolute right-1 top-1/2 -translate-y-1/2 transition-colors ${
-                    isDark ? "text-gray-400 hover:text-gray-200" : "text-gray-500 hover:text-gray-700"
-                  }`}
+                  className={`absolute right-1 top-1/2 -translate-y-1/2 transition-colors ${isDark ? "text-gray-400 hover:text-gray-200" : "text-gray-500 hover:text-gray-700"
+                    }`}
                   disabled={isLoading || isGoogleLoading}
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -302,12 +310,12 @@ export default function LoginPage() {
             {/* Submit Button */}
             <Button
               type="submit"
-              className="w-full h-12 rounded-full text-base font-medium bg-blue-600 hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] text-white"
+              className="w-full h-12 rounded-full text-base font-medium bg-blue-600 hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] text-white relative"
               disabled={isLoading || isGoogleLoading}
             >
               {isLoading ? (
-                <div className="flex items-center justify-center gap-2">
-                  <Spinner className="h-4 w-4" />
+                <div className="flex items-center justify-center">
+                  <Spinner className="h-5 w-5 mr-2" />
                   Signing In...
                 </div>
               ) : (
@@ -335,10 +343,9 @@ export default function LoginPage() {
                 w-full h-12 rounded-full flex items-center justify-center gap-3 
                 text-base font-medium border-[1.5px] hover:shadow-md 
                 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
-                ${
-                  isDark
-                    ? "border-gray-600 bg-gray-800 text-white hover:bg-gray-750"
-                    : "border-gray-400 bg-white text-gray-900 hover:bg-gray-50"
+                ${isDark
+                  ? "border-gray-600 bg-gray-800 text-white hover:bg-gray-750"
+                  : "border-gray-400 bg-white text-gray-900 hover:bg-gray-50"
                 }
               `}
               disabled={isLoading || isGoogleLoading}
@@ -354,7 +361,9 @@ export default function LoginPage() {
                     <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                   </svg>
                 )}
-                <span className="whitespace-nowrap">Continue with Google</span>
+                <span className="whitespace-nowrap">
+                  {isGoogleLoading ? "Signing in..." : "Continue with Google"}
+                </span>
               </div>
             </button>
 

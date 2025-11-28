@@ -19,14 +19,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
   const [isThemeLoaded, setIsThemeLoaded] = useState(false);
 
+  // Load theme from localStorage on initial render
   useEffect(() => {
-    // Get theme from localStorage 
     const savedTheme = localStorage.getItem("theme") as Theme;
     const initialTheme = savedTheme || "system";
     setTheme(initialTheme);
     setIsThemeLoaded(true);
   }, []);
 
+  // Apply theme changes
   useEffect(() => {
     if (!isThemeLoaded) return;
 
@@ -43,25 +44,21 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     setResolvedTheme(actualTheme);
 
-    if (actualTheme === "dark") {
-      root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
-    }
+    // Apply theme class immediately
+    root.classList.remove("light", "dark");
+    root.classList.add(actualTheme);
     
+    // Store theme preference
     localStorage.setItem("theme", theme);
 
-    
+    // Listen for system theme changes
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleChange = () => {
       if (theme === "system") {
         const newSystemTheme = mediaQuery.matches ? "dark" : "light";
         setResolvedTheme(newSystemTheme);
-        if (newSystemTheme === "dark") {
-          root.classList.add("dark");
-        } else {
-          root.classList.remove("dark");
-        }
+        root.classList.remove("light", "dark");
+        root.classList.add(newSystemTheme);
       }
     };
 
