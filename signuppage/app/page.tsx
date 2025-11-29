@@ -472,8 +472,8 @@ export default function SignupPage() {
             // Verification Form
             <div className="space-y-6">
               <div className="text-left">
-                <button
-                  type="button"
+                <Button
+                  variant="link"
                   onClick={handleBackToSignup}
                   className={`flex items-center gap-2 bg-transparent border-none p-0 cursor-pointer font-medium ${isDark
                       ? "text-blue-400 hover:text-blue-300"
@@ -492,7 +492,7 @@ export default function SignupPage() {
                       Back to sign up
                     </>
                   )}
-                </button>
+                </Button>
               </div>
 
               {/* Title Section */}
