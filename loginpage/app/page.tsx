@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { Eye, EyeOff, Sun, Moon, Check } from "lucide-react";
@@ -30,8 +30,8 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
-  const searchParams = useSearchParams();
-
+  
+  const router = useRouter();
   const { theme, setTheme, resolvedTheme, isThemeLoaded } = useTheme();
   const isDark = resolvedTheme === "dark";
 
@@ -48,35 +48,20 @@ export default function LoginPage() {
     mode: "onBlur",
   });
 
-  // Effect to read theme from URL parameters
-  useEffect(() => {
-    if (isThemeLoaded) {
-      const urlTheme = searchParams.get('theme') as Theme;
-      if (urlTheme && ['light', 'dark', 'system'].includes(urlTheme)) {
-        setTheme(urlTheme);
-      }
-    }
-  }, [searchParams, setTheme, isThemeLoaded]);
-
-  // Function to navigate to signup with theme parameter
-  const navigateToSignup = () => {
+  // Navigation functions
+  const navigateTo = (path: string) => {
     setIsNavigating(true);
     const themeParam = `theme=${theme}`;
     setTimeout(() => {
-      window.location.href = `http://localhost:3001?${themeParam}`;
+      window.location.href = `${path}?${themeParam}`;
     }, 500);
   };
 
-  // Function to navigate to forgot password with theme parameter
-  const navigateToForgotPassword = () => {
-    setIsNavigating(true);
-    const themeParam = `theme=${theme}`;
-    setTimeout(() => {
-      window.location.href = `http://localhost:3002?${themeParam}`;
-    }, 500);
-  };
+  const navigateToHome = () => navigateTo("http://localhost:3004");
+  const navigateToSignup = () => navigateTo("http://localhost:3001");
+  const navigateToForgotPassword = () => navigateTo("http://localhost:3002");
 
-  // Loading spinner for theme
+  // Show loading until theme is properly loaded
   if (!isThemeLoaded || isNavigating) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -89,13 +74,19 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      console.log({ email: data.email, password: data.password });
+      console.log("Login details:", { 
+        email: data.email, 
+        password: data.password,
+        timestamp: new Date().toISOString()
+      });
+      
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       const isValidLogin = true;
 
       if (isValidLogin) {
-        alert("Login successful!");
+        console.log("Login successful, navigating to home...");
+        navigateToHome();
       } else {
         setError("email", {
           type: "manual",
@@ -120,9 +111,15 @@ export default function LoginPage() {
     setIsGoogleLoading(true);
 
     try {
-      console.log("Google sign in clicked");
+      console.log("Google sign in details:", {
+        provider: "Google",
+        timestamp: new Date().toISOString()
+      });
+      
       await new Promise(resolve => setTimeout(resolve, 2000));
-      alert("Google sign in successful!");
+      
+      console.log("Google sign in successful, navigating to home...");
+      navigateToHome();
     } finally {
       setIsGoogleLoading(false);
     }
@@ -135,22 +132,24 @@ export default function LoginPage() {
     return isDark ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />;
   };
 
-  const inputClasses = `h-12 rounded-full px-6 transition-all duration-200 focus:ring-2 focus:ring-blue-500/20 ${isDark
-    ? "bg-gray-800 border-gray-600 text-white placeholder-gray-500 focus:border-blue-500"
-    : "bg-white border-gray-400 text-gray-900 placeholder-gray-400 focus:border-blue-500"
-    }`;
+  const inputClasses = `h-12 rounded-full px-6 transition-all duration-200 focus:ring-2 focus:ring-blue-500/20 ${
+    isDark
+      ? "bg-gray-800 border-gray-600 text-white placeholder-gray-500 focus:border-blue-500"
+      : "bg-white border-gray-400 text-gray-900 placeholder-gray-400 focus:border-blue-500"
+  }`;
 
-  const dropdownContentClasses = `w-40 ${isDark
-    ? "bg-gray-800 border-gray-700 text-white"
-    : "bg-white border-gray-200 text-gray-900"
-    }`;
+  const dropdownContentClasses = `w-40 ${
+    isDark
+      ? "bg-gray-800 border-gray-700 text-white"
+      : "bg-white border-gray-200 text-gray-900"
+  }`;
 
-  const dropdownItemClasses = `flex items-center justify-between cursor-pointer ${isDark ? "hover:bg-gray-700" : "hover:bg-gray-100"
-    }`;
+  const dropdownItemClasses = `flex items-center justify-between cursor-pointer ${
+    isDark ? "hover:bg-gray-700" : "hover:bg-gray-100"
+  }`;
 
   return (
     <div className={`min-h-screen flex ${isDark ? "dark bg-gray-900" : "bg-white"}`}>
-      {/* Global Progress Bar - Only for page navigation */}
       <ProgressBar isLoading={isNavigating} />
 
       {/* Theme Dropdown */}
@@ -159,10 +158,11 @@ export default function LoginPage() {
           <Button
             variant="outline"
             size="icon"
-            className={`absolute top-6 right-6 z-10 rounded-full shadow-md hover:shadow-lg transition-all duration-200 ${isDark
-              ? "bg-gray-800 border-gray-700 text-white"
-              : "bg-white border-gray-300 text-gray-900"
-              }`}
+            className={`absolute top-6 right-6 z-10 rounded-full shadow-md hover:shadow-lg transition-all duration-200 ${
+              isDark
+                ? "bg-gray-800 border-gray-700 text-white"
+                : "bg-white border-gray-300 text-gray-900"
+            }`}
             aria-label="Theme settings"
           >
             {getThemeIcon()}
@@ -198,7 +198,7 @@ export default function LoginPage() {
       {/* Left Section - Image */}
       <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-blue-600 to-purple-700 items-center justify-center p-8 relative overflow-hidden">
         <Image
-          src="/loginimage.jpg"
+          src="/loginlogo.webp"
           alt="Login background"
           fill
           className="object-cover"
@@ -208,25 +208,32 @@ export default function LoginPage() {
       </div>
 
       {/* Right Section - Login Form */}
-      <div className={`flex-1 flex items-center justify-center p-6 ${isDark ? "bg-gray-900" : "bg-white"}`}>
+      <div className={`flex-1 flex items-center justify-center p-6 ${
+        isDark ? "bg-gray-900" : "bg-white"
+      }`}>
         <div className="w-full max-w-md">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
             {/* Title */}
             <div className="text-center mb-8">
-              <h1 className={`text-3xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>
+              <h1 className={`text-3xl font-bold ${
+                isDark ? "text-white" : "text-gray-900"
+              }`}>
                 Welcome Back
               </h1>
-              <p className={`mt-2 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+              <p className={`mt-2 ${
+                isDark ? "text-gray-400" : "text-gray-600"
+              }`}>
                 Enter your credentials to access your account
               </p>
             </div>
 
             {/* Root Error Message */}
             {errors.root && (
-              <div className={`p-3 rounded-lg text-sm ${isDark
-                ? "bg-red-900/20 text-red-200 border border-red-800"
-                : "bg-red-50 text-red-700 border border-red-200"
-                }`}>
+              <div className={`p-3 rounded-lg text-sm ${
+                isDark
+                  ? "bg-red-900/20 text-red-200 border border-red-800"
+                  : "bg-red-50 text-red-700 border border-red-200"
+              }`}>
                 {errors.root.message}
               </div>
             )}
@@ -293,8 +300,9 @@ export default function LoginPage() {
                   size="icon"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                   onClick={() => setShowPassword((s) => !s)}
-                  className={`absolute right-1 top-1/2 -translate-y-1/2 transition-colors ${isDark ? "text-gray-400 hover:text-gray-200" : "text-gray-500 hover:text-gray-700"
-                    }`}
+                  className={`absolute right-1 top-1/2 -translate-y-1/2 transition-colors ${
+                    isDark ? "text-gray-400 hover:text-gray-200" : "text-gray-500 hover:text-gray-700"
+                  }`}
                   disabled={isLoading || isGoogleLoading}
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -326,10 +334,14 @@ export default function LoginPage() {
             {/* Divider */}
             <div className="relative mb-4">
               <div className="absolute inset-0 flex items-center">
-                <div className={`w-full border-t ${isDark ? "border-gray-600" : "border-gray-300"}`} />
+                <div className={`w-full border-t ${
+                  isDark ? "border-gray-600" : "border-gray-300"
+                }`} />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className={`px-3 ${isDark ? "bg-gray-900 text-gray-400" : "bg-white text-gray-500"}`}>
+                <span className={`px-3 ${
+                  isDark ? "bg-gray-900 text-gray-400" : "bg-white text-gray-500"
+                }`}>
                   Or continue with
                 </span>
               </div>
@@ -343,9 +355,10 @@ export default function LoginPage() {
                 w-full h-12 rounded-full flex items-center justify-center gap-3 
                 text-base font-medium border-[1.5px] hover:shadow-md 
                 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
-                ${isDark
-                  ? "border-gray-600 bg-gray-800 text-white hover:bg-gray-750"
-                  : "border-gray-400 bg-white text-gray-900 hover:bg-gray-50"
+                ${
+                  isDark
+                    ? "border-gray-600 bg-gray-800 text-white hover:bg-gray-750"
+                    : "border-gray-400 bg-white text-gray-900 hover:bg-gray-50"
                 }
               `}
               disabled={isLoading || isGoogleLoading}
@@ -368,7 +381,9 @@ export default function LoginPage() {
             </button>
 
             {/* Sign up link */}
-            <div className={`text-center text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+            <div className={`text-center text-sm ${
+              isDark ? "text-gray-400" : "text-gray-600"
+            }`}>
               Don't have an account?{" "}
               <Button
                 variant="link"

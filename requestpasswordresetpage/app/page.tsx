@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState } from "react";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { Sun, Moon, Check, ArrowLeft } from "lucide-react";
@@ -28,8 +27,7 @@ export default function RequestResetPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const searchParams = useSearchParams();
-
+  
   const { theme, setTheme, resolvedTheme, isThemeLoaded } = useTheme();
   const isDark = resolvedTheme === "dark";
 
@@ -45,26 +43,19 @@ export default function RequestResetPasswordPage() {
     mode: "onBlur",
   });
 
-  // Effect to read theme from URL parameters
-  useEffect(() => {
-    if (isThemeLoaded) {
-      const urlTheme = searchParams.get('theme') as Theme;
-      if (urlTheme && ['light', 'dark', 'system'].includes(urlTheme)) {
-        setTheme(urlTheme);
-      }
-    }
-  }, [searchParams, setTheme, isThemeLoaded]);
-
-  // Function to navigate to login with theme parameter
-  const navigateToLogin = () => {
+  // Navigation functions
+  const navigateTo = (path: string) => {
     setIsNavigating(true);
     const themeParam = `theme=${theme}`;
     setTimeout(() => {
-      window.location.href = `http://localhost:3000?${themeParam}`;
+      window.location.href = `${path}?${themeParam}`;
     }, 500);
   };
 
-  // Loading spinner for theme
+  const navigateToLogin = () => navigateTo("http://localhost:3000");
+  const navigateToResetPassword = () => navigateTo("http://localhost:3003");
+
+  // Show loading until theme is properly loaded
   if (!isThemeLoaded || isNavigating) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -100,22 +91,24 @@ export default function RequestResetPasswordPage() {
     return isDark ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />;
   };
 
-  const inputClasses = `h-12 rounded-full px-6 transition-all duration-200 focus:ring-2 focus:ring-blue-500/20 ${isDark
+  const inputClasses = `h-12 rounded-full px-6 transition-all duration-200 focus:ring-2 focus:ring-blue-500/20 ${
+    isDark
       ? "bg-gray-800 border-gray-600 text-white placeholder-gray-500 focus:border-blue-500"
       : "bg-white border-gray-400 text-gray-900 placeholder-gray-400 focus:border-blue-500"
-    }`;
+  }`;
 
-  const dropdownContentClasses = `w-40 ${isDark
+  const dropdownContentClasses = `w-40 ${
+    isDark
       ? "bg-gray-800 border-gray-700 text-white"
       : "bg-white border-gray-200 text-gray-900"
-    }`;
+  }`;
 
-  const dropdownItemClasses = `flex items-center justify-between cursor-pointer ${isDark ? "hover:bg-gray-700" : "hover:bg-gray-100"
-    }`;
+  const dropdownItemClasses = `flex items-center justify-between cursor-pointer ${
+    isDark ? "hover:bg-gray-700" : "hover:bg-gray-100"
+  }`;
 
   return (
     <div className={`min-h-screen flex ${isDark ? "dark bg-gray-900" : "bg-white"}`}>
-      {/* Global Progress Bar */}
       <ProgressBar isLoading={isNavigating} />
 
       {/* Theme Dropdown */}
@@ -124,10 +117,11 @@ export default function RequestResetPasswordPage() {
           <Button
             variant="outline"
             size="icon"
-            className={`absolute top-6 right-6 z-10 rounded-full shadow-md hover:shadow-lg transition-all duration-200 ${isDark
+            className={`absolute top-6 right-6 z-10 rounded-full shadow-md hover:shadow-lg transition-all duration-200 ${
+              isDark
                 ? "bg-gray-800 border-gray-700 text-white"
                 : "bg-white border-gray-300 text-gray-900"
-              }`}
+            }`}
             aria-label="Theme settings"
           >
             {getThemeIcon()}
@@ -163,7 +157,7 @@ export default function RequestResetPasswordPage() {
       {/* Left Section - Image */}
       <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-blue-600 to-purple-700 items-center justify-center p-8 relative overflow-hidden">
         <Image
-          src="/forgotpasswordlogo.png"
+          src="/resetpasswordlogo.webp"
           alt="Reset password background"
           fill
           className="object-cover"
@@ -173,8 +167,9 @@ export default function RequestResetPasswordPage() {
       </div>
 
       {/* Right Section - Reset Password Form */}
-      <div className={`flex-1 flex items-center justify-center p-6 ${isDark ? "bg-gray-900" : "bg-white"
-        }`}>
+      <div className={`flex-1 flex items-center justify-center p-6 ${
+        isDark ? "bg-gray-900" : "bg-white"
+      }`}>
         <div className="w-full max-w-md">
           {!isSubmitted ? (
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
@@ -182,10 +177,11 @@ export default function RequestResetPasswordPage() {
               <Button
                 variant="link"
                 onClick={navigateToLogin}
-                className={`flex items-center gap-2 bg-transparent border-none p-0 cursor-pointer font-medium ${isDark
-                  ? "text-blue-400 hover:text-blue-300"
-                  : "text-blue-600 hover:text-blue-700"
-                  } transition-colors duration-200 relative`}
+                className={`flex items-center gap-2 bg-transparent border-none p-0 cursor-pointer font-medium ${
+                  isDark
+                    ? "text-blue-400 hover:text-blue-300"
+                    : "text-blue-600 hover:text-blue-700"
+                } transition-colors duration-200 relative`}
                 type="button"
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -194,11 +190,14 @@ export default function RequestResetPasswordPage() {
 
               {/* Title */}
               <div className="text-center mb-8">
-                <h1 className={`text-3xl font-bold ${isDark ? "text-white" : "text-gray-900"
-                  }`}>
+                <h1 className={`text-3xl font-bold ${
+                  isDark ? "text-white" : "text-gray-900"
+                }`}>
                   Reset Your Password
                 </h1>
-                <p className={`mt-2 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+                <p className={`mt-2 ${
+                  isDark ? "text-gray-400" : "text-gray-600"
+                }`}>
                   Enter your email address and we'll send you instructions to reset your password.
                 </p>
               </div>
@@ -206,10 +205,11 @@ export default function RequestResetPasswordPage() {
               {/* Root Error Message */}
               {errors.root && (
                 <div
-                  className={`p-3 rounded-lg text-sm ${isDark
+                  className={`p-3 rounded-lg text-sm ${
+                    isDark
                       ? "bg-red-900/20 text-red-200 border border-red-800"
                       : "bg-red-50 text-red-700 border border-red-200"
-                    }`}
+                  }`}
                 >
                   {errors.root.message}
                 </div>
@@ -239,8 +239,9 @@ export default function RequestResetPasswordPage() {
                 />
                 {errors.email && (
                   <p
-                    className={`text-sm ${isDark ? "text-red-400" : "text-red-600"
-                      }`}
+                    className={`text-sm ${
+                      isDark ? "text-red-400" : "text-red-600"
+                    }`}
                   >
                     {errors.email.message}
                   </p>
@@ -270,8 +271,9 @@ export default function RequestResetPasswordPage() {
               <Button
                 variant="ghost"
                 onClick={navigateToLogin}
-                className={`p-0 h-auto mb-4 flex items-center gap-2 ${isDark ? "text-gray-400 hover:text-gray-200" : "text-gray-600 hover:text-gray-900"
-                  }`}
+                className={`p-0 h-auto mb-4 flex items-center gap-2 ${
+                  isDark ? "text-gray-400 hover:text-gray-200" : "text-gray-600 hover:text-gray-900"
+                }`}
                 type="button"
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -280,10 +282,13 @@ export default function RequestResetPasswordPage() {
 
               {/* Success Icon */}
               <div className="flex justify-center">
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center ${isDark ? "bg-green-900/20" : "bg-green-100"
-                  }`}>
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                  isDark ? "bg-green-900/20" : "bg-green-100"
+                }`}>
                   <svg
-                    className={`w-8 h-8 ${isDark ? "text-green-400" : "text-green-600"}`}
+                    className={`w-8 h-8 ${
+                      isDark ? "text-green-400" : "text-green-600"
+                    }`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -300,18 +305,22 @@ export default function RequestResetPasswordPage() {
 
               {/* Success Title */}
               <div>
-                <h1 className={`text-3xl font-bold ${isDark ? "text-white" : "text-gray-900"
-                  }`}>
+                <h1 className={`text-3xl font-bold ${
+                  isDark ? "text-white" : "text-gray-900"
+                }`}>
                   Check Your Email
                 </h1>
-                <p className={`mt-2 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+                <p className={`mt-2 ${
+                  isDark ? "text-gray-400" : "text-gray-600"
+                }`}>
                   We've sent password reset instructions to your email address.
                 </p>
               </div>
 
               {/* Additional Info */}
-              <div className={`text-sm p-4 rounded-lg ${isDark ? "bg-gray-800 text-gray-300" : "bg-gray-50 text-gray-600"
-                }`}>
+              <div className={`text-sm p-4 rounded-lg ${
+                isDark ? "bg-gray-800 text-gray-300" : "bg-gray-50 text-gray-600"
+              }`}>
                 <p>
                   If you don't see the email in your inbox, please check your spam folder or try again.
                 </p>

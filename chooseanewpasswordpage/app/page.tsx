@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState } from "react";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { Eye, EyeOff, Sun, Moon, Check } from "lucide-react";
@@ -30,8 +29,7 @@ export default function ResetPasswordPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
-  const searchParams = useSearchParams();
-
+  
   const { theme, setTheme, resolvedTheme, isThemeLoaded } = useTheme();
   const isDark = resolvedTheme === "dark";
 
@@ -47,26 +45,18 @@ export default function ResetPasswordPage() {
 
   const newPassword = watch("newPassword");
 
-  // Effect to read theme from URL parameters
-  useEffect(() => {
-    if (isThemeLoaded) {
-      const urlTheme = searchParams.get('theme') as Theme;
-      if (urlTheme && ['light', 'dark', 'system'].includes(urlTheme)) {
-        setTheme(urlTheme);
-      }
-    }
-  }, [searchParams, setTheme, isThemeLoaded]);
-
-  // Function to navigate to login with theme parameter
-  const navigateToLogin = () => {
+  // Navigation functions
+  const navigateTo = (path: string) => {
     setIsNavigating(true);
     const themeParam = `theme=${theme}`;
     setTimeout(() => {
-      window.location.href = `http://localhost:3000?${themeParam}`;
+      window.location.href = `${path}?${themeParam}`;
     }, 500);
   };
 
-  // Loading spinner for theme
+  const navigateToLogin = () => navigateTo("http://localhost:3000");
+
+  // Show loading until theme is properly loaded
   if (!isThemeLoaded || isNavigating) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -132,7 +122,6 @@ export default function ResetPasswordPage() {
 
   return (
     <div className={`min-h-screen flex ${isDark ? "dark bg-gray-900" : "bg-white"}`}>
-      {/* Global Progress Bar - Only for page navigation */}
       <ProgressBar isLoading={isNavigating} />
 
       {/* Theme Dropdown */}
@@ -181,7 +170,7 @@ export default function ResetPasswordPage() {
       {/* Left Section - Image */}
       <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-blue-600 to-purple-700 items-center justify-center p-8 relative overflow-hidden">
         <Image
-          src="/chooseanewpassowrdlogo.png"
+          src="/choosenewpassowrdlogo.webp"
           alt="Reset password background"
           fill
           className="object-cover"
@@ -191,15 +180,21 @@ export default function ResetPasswordPage() {
       </div>
 
       {/* Right Section - Reset Password Form */}
-      <div className={`flex-1 flex items-center justify-center p-6 ${isDark ? "bg-gray-900" : "bg-white"}`}>
+      <div className={`flex-1 flex items-center justify-center p-6 ${
+        isDark ? "bg-gray-900" : "bg-white"
+      }`}>
         <div className="w-full max-w-md">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
             {/* Title */}
             <div className="text-center mb-8">
-              <h1 className={`text-3xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>
+              <h1 className={`text-3xl font-bold ${
+                isDark ? "text-white" : "text-gray-900"
+              }`}>
                 Choose a New Password
               </h1>
-              <p className={`mt-2 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+              <p className={`mt-2 ${
+                isDark ? "text-gray-400" : "text-gray-600"
+              }`}>
                 Create a strong password to secure your account
               </p>
             </div>
@@ -238,7 +233,7 @@ export default function ResetPasswordPage() {
                   })}
                 />
                 <Button
-                  
+                  type="button"
                   variant="ghost"
                   size="icon"
                   aria-label={showNewPassword ? "Hide password" : "Show password"}
@@ -252,7 +247,9 @@ export default function ResetPasswordPage() {
                 </Button>
               </div>
               {errors.newPassword && (
-                <p className={`text-sm ${isDark ? "text-red-400" : "text-red-600"}`}>
+                <p className={`text-sm ${
+                  isDark ? "text-red-400" : "text-red-600"
+                }`}>
                   {errors.newPassword.message}
                 </p>
               )}
@@ -290,7 +287,9 @@ export default function ResetPasswordPage() {
                 </Button>
               </div>
               {errors.confirmPassword && (
-                <p className={`text-sm ${isDark ? "text-red-400" : "text-red-600"}`}>
+                <p className={`text-sm ${
+                  isDark ? "text-red-400" : "text-red-600"
+                }`}>
                   {errors.confirmPassword.message}
                 </p>
               )}

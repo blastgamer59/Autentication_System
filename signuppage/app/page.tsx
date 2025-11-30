@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { Eye, EyeOff, Sun, Moon, Check, ArrowLeft } from "lucide-react";
@@ -43,8 +42,7 @@ export default function SignupPage() {
   const [currentStep, setCurrentStep] = useState<"signup" | "verification">("signup");
   const [userData, setUserData] = useState<SignupFormData | null>(null);
   const [isStepNavigating, setIsStepNavigating] = useState(false);
-  const searchParams = useSearchParams();
-
+  
   const { theme, setTheme, resolvedTheme, isThemeLoaded } = useTheme();
   const isDark = resolvedTheme === "dark";
 
@@ -78,24 +76,17 @@ export default function SignupPage() {
 
   const otpValue = watch("otp");
 
-  // Navigate to login with theme parameter
-  const navigateToLogin = () => {
+  // Navigation functions
+  const navigateTo = (path: string) => {
     setIsNavigating(true);
     const themeParam = `theme=${theme}`;
     setTimeout(() => {
-      window.location.href = `http://localhost:3000?${themeParam}`;
+      window.location.href = `${path}?${themeParam}`;
     }, 500);
   };
 
-  // Effect to read theme from URL parameters
-  useEffect(() => {
-    if (isThemeLoaded) {
-      const urlTheme = searchParams.get('theme') as Theme;
-      if (urlTheme && ['light', 'dark', 'system'].includes(urlTheme)) {
-        setTheme(urlTheme);
-      }
-    }
-  }, [searchParams, setTheme, isThemeLoaded]);
+  const navigateToHome = () => navigateTo("http://localhost:3004");
+  const navigateToLogin = () => navigateTo("http://localhost:3000");
 
   // Auto-submit when OTP is complete
   useEffect(() => {
@@ -107,7 +98,9 @@ export default function SignupPage() {
   // Show loading until theme is properly loaded
   if (!isThemeLoaded || isNavigating) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${isDark ? "bg-gray-900" : "bg-gray-50"}`}>
+      <div className={`min-h-screen flex items-center justify-center ${
+        isDark ? "bg-gray-900" : "bg-gray-50"
+      }`}>
         <ProgressBar isLoading={true} />
       </div>
     );
@@ -118,7 +111,13 @@ export default function SignupPage() {
     setIsStepNavigating(true);
 
     try {
-      console.log({ fullName: data.fullName, email: data.email, password: data.password });
+      console.log("Signup details:", { 
+        fullName: data.fullName, 
+        email: data.email, 
+        password: data.password,
+        timestamp: new Date().toISOString()
+      });
+      
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       const isValidSignup = true;
@@ -154,7 +153,8 @@ export default function SignupPage() {
       const isValidOTP = data.otp === "123456";
 
       if (isValidOTP) {
-        alert("Account verified successfully!");
+        console.log("Account verified successfully, navigating to home...");
+        navigateToHome();
       } else {
         setVerificationError("otp", {
           type: "manual",
@@ -171,6 +171,24 @@ export default function SignupPage() {
     }
   }
 
+  async function handleGoogleSignIn() {
+    setIsGoogleLoading(true);
+
+    try {
+      console.log("Google sign up details:", {
+        provider: "Google",
+        timestamp: new Date().toISOString()
+      });
+      
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      console.log("Google sign up successful, navigating to home...");
+      navigateToHome();
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  }
+
   function handleBackToSignup() {
     setIsStepNavigating(true);
     setTimeout(() => {
@@ -180,18 +198,6 @@ export default function SignupPage() {
     }, 500);
   }
 
-  async function handleGoogleSignIn() {
-    setIsGoogleLoading(true);
-
-    try {
-      console.log("Google sign up clicked");
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      alert("Google sign up successful!");
-    } finally {
-      setIsGoogleLoading(false);
-    }
-  }
-
   const getThemeIcon = () => {
     if (theme === "system") {
       return isDark ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />;
@@ -199,22 +205,24 @@ export default function SignupPage() {
     return isDark ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />;
   };
 
-  const inputClasses = `h-12 rounded-full px-6 transition-all duration-200 focus:ring-2 focus:ring-blue-500/20 ${isDark
+  const inputClasses = `h-12 rounded-full px-6 transition-all duration-200 focus:ring-2 focus:ring-blue-500/20 ${
+    isDark
       ? "bg-gray-800 border-gray-600 text-white placeholder-gray-500 focus:border-blue-500"
       : "bg-white border-gray-400 text-gray-900 placeholder-gray-400 focus:border-blue-500"
-    }`;
+  }`;
 
-  const dropdownContentClasses = `w-40 ${isDark
+  const dropdownContentClasses = `w-40 ${
+    isDark
       ? "bg-gray-800 border-gray-700 text-white"
       : "bg-white border-gray-200 text-gray-900"
-    }`;
+  }`;
 
-  const dropdownItemClasses = `flex items-center justify-between cursor-pointer ${isDark ? "hover:bg-gray-700" : "hover:bg-gray-100"
-    }`;
+  const dropdownItemClasses = `flex items-center justify-between cursor-pointer ${
+    isDark ? "hover:bg-gray-700" : "hover:bg-gray-100"
+  }`;
 
   return (
     <div className={`min-h-screen flex ${isDark ? "dark bg-gray-900" : "bg-white"}`}>
-      {/* Global Progress Bar - Only for page navigation */}
       <ProgressBar isLoading={isNavigating} />
 
       {/* Theme Dropdown */}
@@ -223,10 +231,11 @@ export default function SignupPage() {
           <Button
             variant="outline"
             size="icon"
-            className={`absolute top-6 right-6 z-10 rounded-full shadow-md hover:shadow-lg transition-all duration-200 ${isDark
+            className={`absolute top-6 right-6 z-10 rounded-full shadow-md hover:shadow-lg transition-all duration-200 ${
+              isDark
                 ? "bg-gray-800 border-gray-700 text-white"
                 : "bg-white border-gray-300 text-gray-900"
-              }`}
+            }`}
             aria-label="Theme settings"
           >
             {getThemeIcon()}
@@ -262,7 +271,7 @@ export default function SignupPage() {
       {/* Left Section - Image */}
       <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-blue-600 to-purple-700 items-center justify-center p-8 relative overflow-hidden">
         <Image
-          src="/signuplogo.png"
+          src="/signupimage.webp"
           alt="Sign up background"
           fill
           className="object-cover"
@@ -272,27 +281,34 @@ export default function SignupPage() {
       </div>
 
       {/* Right Section - Form */}
-      <div className={`flex-1 flex items-center justify-center p-6 ${isDark ? "bg-gray-900" : "bg-white"}`}>
+      <div className={`flex-1 flex items-center justify-center p-6 ${
+        isDark ? "bg-gray-900" : "bg-white"
+      }`}>
         <div className="w-full max-w-md relative">
           {currentStep === "signup" ? (
             // Signup Form
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
               {/* Title */}
               <div className="text-center mb-8">
-                <h1 className={`text-3xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>
+                <h1 className={`text-3xl font-bold ${
+                  isDark ? "text-white" : "text-gray-900"
+                }`}>
                   Create Account
                 </h1>
-                <p className={`mt-2 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+                <p className={`mt-2 ${
+                  isDark ? "text-gray-400" : "text-gray-600"
+                }`}>
                   Sign up to get started with your account
                 </p>
               </div>
 
               {/* Error Message */}
               {errors.root && (
-                <div className={`p-3 rounded-lg text-sm ${isDark
+                <div className={`p-3 rounded-lg text-sm ${
+                  isDark
                     ? "bg-red-900/20 text-red-200 border border-red-800"
                     : "bg-red-50 text-red-700 border border-red-200"
-                  }`}>
+                }`}>
                   {errors.root.message}
                 </div>
               )}
@@ -317,7 +333,9 @@ export default function SignupPage() {
                   })}
                 />
                 {errors.fullName && (
-                  <p className={`text-sm ${isDark ? "text-red-400" : "text-red-600"}`}>
+                  <p className={`text-sm ${
+                    isDark ? "text-red-400" : "text-red-600"
+                  }`}>
                     {errors.fullName.message}
                   </p>
                 )}
@@ -343,7 +361,9 @@ export default function SignupPage() {
                   })}
                 />
                 {errors.email && (
-                  <p className={`text-sm ${isDark ? "text-red-400" : "text-red-600"}`}>
+                  <p className={`text-sm ${
+                    isDark ? "text-red-400" : "text-red-600"
+                  }`}>
                     {errors.email.message}
                   </p>
                 )}
@@ -375,15 +395,18 @@ export default function SignupPage() {
                     size="icon"
                     aria-label={showPassword ? "Hide password" : "Show password"}
                     onClick={() => setShowPassword((s) => !s)}
-                    className={`absolute right-1 top-1/2 -translate-y-1/2 transition-colors ${isDark ? "text-gray-400 hover:text-gray-200" : "text-gray-500 hover:text-gray-700"
-                      }`}
+                    className={`absolute right-1 top-1/2 -translate-y-1/2 transition-colors ${
+                      isDark ? "text-gray-400 hover:text-gray-200" : "text-gray-500 hover:text-gray-700"
+                    }`}
                     disabled={isLoading || isGoogleLoading || isStepNavigating}
                   >
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </Button>
                 </div>
                 {errors.password && (
-                  <p className={`text-sm ${isDark ? "text-red-400" : "text-red-600"}`}>
+                  <p className={`text-sm ${
+                    isDark ? "text-red-400" : "text-red-600"
+                  }`}>
                     {errors.password.message}
                   </p>
                 )}
@@ -413,10 +436,14 @@ export default function SignupPage() {
               {/* Divider */}
               <div className="relative mb-4">
                 <div className="absolute inset-0 flex items-center">
-                  <div className={`w-full border-t ${isDark ? "border-gray-600" : "border-gray-300"}`} />
+                  <div className={`w-full border-t ${
+                    isDark ? "border-gray-600" : "border-gray-300"
+                  }`} />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className={`px-3 ${isDark ? "bg-gray-900 text-gray-400" : "bg-white text-gray-500"}`}>
+                  <span className={`px-3 ${
+                    isDark ? "bg-gray-900 text-gray-400" : "bg-white text-gray-500"
+                  }`}>
                     Or continue with
                   </span>
                 </div>
@@ -430,9 +457,10 @@ export default function SignupPage() {
                   w-full h-12 rounded-full flex items-center justify-center gap-3 
                   text-base font-medium border-[1.5px] hover:shadow-md 
                   transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
-                  ${isDark
-                    ? "border-gray-600 bg-gray-800 text-white hover:bg-gray-750"
-                    : "border-gray-400 bg-white text-gray-900 hover:bg-gray-50"
+                  ${
+                    isDark
+                      ? "border-gray-600 bg-gray-800 text-white hover:bg-gray-750"
+                      : "border-gray-400 bg-white text-gray-900 hover:bg-gray-50"
                   }
                 `}
                 disabled={isLoading || isGoogleLoading || isStepNavigating}
@@ -455,7 +483,9 @@ export default function SignupPage() {
               </button>
 
               {/* Sign in link */}
-              <div className={`text-center text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+              <div className={`text-center text-sm ${
+                isDark ? "text-gray-400" : "text-gray-600"
+              }`}>
                 Already have an account?{" "}
                 <button
                   onClick={navigateToLogin}
@@ -468,17 +498,17 @@ export default function SignupPage() {
               </div>
             </form>
           ) : (
-            
             // Verification Form
             <div className="space-y-6">
               <div className="text-left">
                 <Button
                   variant="link"
                   onClick={handleBackToSignup}
-                  className={`flex items-center gap-2 bg-transparent border-none p-0 cursor-pointer font-medium ${isDark
+                  className={`flex items-center gap-2 bg-transparent border-none p-0 cursor-pointer font-medium ${
+                    isDark
                       ? "text-blue-400 hover:text-blue-300"
                       : "text-blue-600 hover:text-blue-700"
-                    } transition-colors duration-200 relative`}
+                  } transition-colors duration-200 relative`}
                   disabled={isStepNavigating}
                 >
                   {isStepNavigating ? (
@@ -497,20 +527,28 @@ export default function SignupPage() {
 
               {/* Title Section */}
               <div className="text-center mb-8">
-                <h1 className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"} mb-2`}>
+                <h1 className={`text-2xl font-bold ${
+                  isDark ? "text-white" : "text-gray-900"
+                } mb-2`}>
                   Check Your Email
                 </h1>
-                <p className={`${isDark ? "text-gray-400" : "text-gray-600"} mb-1`}>
+                <p className={`${
+                  isDark ? "text-gray-400" : "text-gray-600"
+                } mb-1`}>
                   We sent a verification code to
                 </p>
-                <p className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-600"}`}>
+                <p className={`font-semibold ${
+                  isDark ? "text-blue-400" : "text-blue-600"
+                }`}>
                   {userData?.email}
                 </p>
               </div>
 
               {/* OTP Input Section */}
               <div className="space-y-4">
-                <Label className={`text-center block text-sm font-medium ${isDark ? "text-gray-200" : "text-gray-700"}`}>
+                <Label className={`text-center block text-sm font-medium ${
+                  isDark ? "text-gray-200" : "text-gray-700"
+                }`}>
                   Enter the 6-digit code
                 </Label>
 
@@ -529,10 +567,11 @@ export default function SignupPage() {
                         <InputOTPSlot
                           key={index}
                           index={index}
-                          className={`h-14 w-12 text-lg font-semibold border-2 transition-all duration-200 ${isDark
+                          className={`h-14 w-12 text-lg font-semibold border-2 transition-all duration-200 ${
+                            isDark
                               ? "border-gray-600 bg-gray-800 text-white focus:border-blue-500"
                               : "border-gray-300 bg-white text-gray-900 focus:border-blue-500"
-                            } rounded-lg`}
+                          } rounded-lg`}
                         />
                       ))}
                     </InputOTPGroup>
@@ -540,18 +579,23 @@ export default function SignupPage() {
                 </div>
 
                 {verificationErrors.otp && (
-                  <p className={`text-sm text-center ${isDark ? "text-red-400" : "text-red-600"}`}>
+                  <p className={`text-sm text-center ${
+                    isDark ? "text-red-400" : "text-red-600"
+                  }`}>
                     {verificationErrors.otp.message}
                   </p>
                 )}
               </div>
 
               {/* Help Text */}
-              <div className={`text-center text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+              <div className={`text-center text-sm ${
+                isDark ? "text-gray-400" : "text-gray-600"
+              }`}>
                 Didn't receive the code?{" "}
                 <button
-                  className={`font-medium hover:underline p-0 h-auto bg-transparent border-none cursor-pointer ${isDark ? "text-blue-400" : "text-blue-600"
-                    }`}
+                  className={`font-medium hover:underline p-0 h-auto bg-transparent border-none cursor-pointer ${
+                    isDark ? "text-blue-400" : "text-blue-600"
+                  }`}
                   type="button"
                   onClick={() => console.log("Resend OTP to:", userData?.email)}
                   disabled={isStepNavigating}

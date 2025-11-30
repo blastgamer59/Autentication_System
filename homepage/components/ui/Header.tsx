@@ -153,27 +153,19 @@ export function Header({ onSignOut, isSigningOut }: HeaderProps) {
                   onPointerLeave={() => closeMenuWithDelay(250)}
                   onCloseAutoFocus={(e) => e.preventDefault()}
                 >
-                  {/* User Info */}
-                  <DropdownMenuLabel className="p-0 font-normal">
-                    <div className="p-3">
-                      <div
-                        className={`p-3 rounded-lg ${
-                          isDark ? "bg-gray-700/50" : "bg-gray-50"
-                        }`}
+                  {/* User Info - Simplified without box */}
+                  <DropdownMenuLabel className="p-3 font-normal">
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-semibold truncate">
+                        Alex Johnson
+                      </span>
+                      <span
+                        className={`text-xs truncate ${
+                          isDark ? "text-gray-400" : "text-gray-500"
+                        } mt-1`}
                       >
-                        <div className="flex flex-col min-w-0">
-                          <span
-                            className={`text-xs truncate ${
-                              isDark ? "text-gray-400" : "text-gray-500"
-                            } mb-1`}
-                          >
-                            admin@authflow.com
-                          </span>
-                          <span className="text-sm font-semibold truncate">
-                            Alex Johnson
-                          </span>
-                        </div>
-                      </div>
+                        admin@authflow.com
+                      </span>
                     </div>
                   </DropdownMenuLabel>
 
